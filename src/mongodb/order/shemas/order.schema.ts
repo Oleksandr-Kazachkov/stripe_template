@@ -15,8 +15,14 @@ export class Order {
   @Prop({ default: null })
   invoce: Array<ObjectId>;
 
+  @Prop({ required: true })
+  customerId: ObjectId;
+
   @Prop({ default: null })
   status: string;
+
+  @Prop({ default: null })
+  mode: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

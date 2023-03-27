@@ -17,4 +17,7 @@ export default class createOrderDto {
 
   @ApiProperty()
   invoce: Array<string>;
+
+  @ApiProperty()
+  mode: string;
 }

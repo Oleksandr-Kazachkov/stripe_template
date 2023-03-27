@@ -14,4 +14,8 @@ export default class createInvoiceDto {
   @ApiProperty()
   @IsNotEmpty()
   orderId: ObjectId;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  status: string;
 }

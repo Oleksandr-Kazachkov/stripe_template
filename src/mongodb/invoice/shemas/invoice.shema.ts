@@ -14,6 +14,9 @@ export class Invoice {
 
   @Prop({ required: true })
   orderId: ObjectId;
+
+  @Prop({ required: true })
+  status: string;
 }
 
 export const InvoiceSchema = SchemaFactory.createForClass(Invoice);

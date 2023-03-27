@@ -20,6 +20,7 @@ export class OrderService {
     customerStripeId?: string,
     invoiceRes?: ObjectId,
     status?: string,
+    mode?: string,
   ) {
     const order = await this.orderModel.findOne({
       customerStripeId: customerStripeId,
@@ -31,6 +32,10 @@ export class OrderService {
 
     if (order.status != 'succeeded' && status) {
       order.status = status;
+    }
+
+    if (order.mode === null) {
+      order.mode = mode;
     }
 
     order.save();

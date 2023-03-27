@@ -8,6 +8,7 @@ import { ProductService } from 'src/mongodb/products/product.service';
 import CreateProductDto from 'src/mongodb/products/dto/create.product.dto';
 import { InvoiceService } from 'src/mongodb/invoice/invoice.service';
 import { ObjectId } from 'mongodb';
+import { UpdateSubscriptionDto } from './dto/update.subscription.dto';
 
 @Controller()
 export default class StripeController {
@@ -21,11 +22,26 @@ export default class StripeController {
 
   @Post('/createPaymentLink')
   async create(@Body() paymentRequestBody: PaymentRequestBody) {
+    const user = await this.userService.findOneById(
+      paymentRequestBody.customerId,
+    );
+
+    const objectId = new ObjectId(user._id);
+
+    await this.orderService.createOrder({
+      customerStripeId: paymentRequestBody.customerId,
+      customerId: objectId,
+      products: [],
+      invoce: [],
+      mode: null,
+    });
+
     return await this.stripeService.createPaymentLink(paymentRequestBody);
   }
 
   @Post('/paymentStatus')
   async paymentStatus(@Body() body: any) {
+    let invoice;
     let products = [];
     if (body.data.object.metadata.products) {
       products = JSON.parse(body.data.object.metadata.products);
@@ -37,16 +53,20 @@ export default class StripeController {
 
     const user = await this.userService.findOneById(body.data.object.customer);
 
-    const invoice = await this.invoiceService.createInvoice({
-      data: body.data.object,
-      customerId: user.customerId,
-      orderId: orderId._id,
-    });
+    if (body.type != 'checkout.session.completed') {
+      invoice = await this.invoiceService.createInvoice({
+        data: body.data.object,
+        customerId: user.customerId,
+        orderId: orderId._id,
+        status: body.type,
+      });
+    }
 
     await this.orderService.updateOneOrder(
       body.data.object.customer,
       invoice,
       body.data.object.status,
+      body.data.object.metadata.mode,
     );
 
     await Promise.all(
@@ -69,18 +89,11 @@ export default class StripeController {
       throw new BadRequestException('User was not found');
     }
 
+    const objectId = new ObjectId(user._id);
+
     const customerId = await this.stripeService.createCustomer(
       createCustomerDto,
     );
-
-    const objectId = new ObjectId(user._id);
-
-    await this.orderService.createOrder({
-      customerStripeId: customerId.id,
-      customerId: objectId,
-      products: [],
-      invoce: [],
-    });
 
     await user.updateOne({
       customerId: objectId,
@@ -113,5 +126,17 @@ export default class StripeController {
     await this.productService.createProduct(createProductDto, product.id);
 
     return product;
+  }
+
+  @Post('/updateSubscription')
+  async updateSubscription(
+    @Body() updateSubscriptionDto: UpdateSubscriptionDto,
+  ) {
+    this.stripeService.updateSubscription(updateSubscriptionDto);
+  }
+
+  @Post('/deleteSubscription')
+  async deleteSubscription(@Body() subscriptionId: string) {
+    this.stripeService.cancelSubscription(subscriptionId);
   }
 }

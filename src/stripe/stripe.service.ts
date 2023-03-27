@@ -3,6 +3,7 @@ import createProductDto from 'src/mongodb/products/dto/create.product.dto';
 import Stripe from 'stripe';
 import CreateCustomerDto from './dto/create.customer.dto';
 import { PaymentRequestBody } from './dto/payment.dto';
+import { UpdateSubscriptionDto } from './dto/update.subscription.dto';
 
 @Injectable()
 export default class StripeService {
@@ -51,14 +52,27 @@ export default class StripeService {
 
     const payment_link = await this.stripe.checkout.sessions.create({
       line_items,
-      mode: 'payment',
+      mode: paymentRequestBody.mode,
       currency: 'uah',
       customer: paymentRequestBody.customerId,
       success_url: 'https://dashboard.stripe.com/test/payments',
-      metadata: { ['products']: JSON.stringify(metaLineItems) },
+      metadata: {
+        ['products']: JSON.stringify(metaLineItems),
+        ['mode']: paymentRequestBody.mode,
+      },
     });
 
     return payment_link.url;
+  }
+
+  async updateSubscription(updateSubscriptionDto: UpdateSubscriptionDto) {
+    await this.stripe.subscriptions.update(updateSubscriptionDto.subId, {
+      metadata: { customerStripeId: updateSubscriptionDto.customerStripeId },
+    });
+  }
+
+  async cancelSubscription(subscriptionId: string) {
+    await this.stripe.subscriptions.del(subscriptionId);
   }
 
   async createProduct(name: string) {
