@@ -38,7 +38,7 @@ export default class StripeController {
     const user = await this.userService.findOneById(body.data.object.customer);
 
     const invoice = await this.invoiceService.createInvoice({
-      data: body.data,
+      data: body.data.object,
       customerId: user.customerId,
       orderId: orderId._id,
     });

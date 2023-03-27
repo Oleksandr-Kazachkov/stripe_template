@@ -4,7 +4,7 @@ import { HydratedDocument } from 'mongoose';
 
 export type UserDocument = HydratedDocument<Order>;
 
-@Schema()
+@Schema({ versionKey: false })
 export class Order {
   @Prop({ default: null })
   products: Array<object>;

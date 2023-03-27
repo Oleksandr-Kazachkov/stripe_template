@@ -42,6 +42,7 @@ export default class StripeService {
     const metaLineItems = await Promise.all(
       line_items.map(async (el) => {
         return {
+          productId: el.price,
           price: await this.getCost(el.price),
           quantity: el.quantity,
         };

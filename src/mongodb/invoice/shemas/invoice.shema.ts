@@ -4,7 +4,7 @@ import { HydratedDocument } from 'mongoose';
 
 export type InvoiceDocument = HydratedDocument<Invoice>;
 
-@Schema()
+@Schema({ versionKey: false })
 export class Invoice {
   @Prop({ type: Object })
   data: object;

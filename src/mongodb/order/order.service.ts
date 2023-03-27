@@ -29,7 +29,7 @@ export class OrderService {
       order.invoce[order.invoce.length] = invoiceRes;
     }
 
-    if (order.status != 'completed' && status) {
+    if (order.status != 'succeeded' && status) {
       order.status = status;
     }
 
@@ -41,8 +41,8 @@ export class OrderService {
       customerStripeId: customerStripeId,
     });
 
-    order.products[order.products.length] = product;
-    order.save();
+    order.products.push(product);
+    return await order.save();
   }
 
   async findOneOrder(customerStripeId: string) {
