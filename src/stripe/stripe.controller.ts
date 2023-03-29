@@ -9,6 +9,7 @@ import CreateProductDto from 'src/mongodb/products/dto/create.product.dto';
 import { InvoiceService } from 'src/mongodb/invoice/invoice.service';
 import { ObjectId } from 'mongodb';
 import { UpdateSubscriptionDto } from './dto/update.subscription.dto';
+import { SubscriptionService } from 'src/mongodb/subscription/subscription.service';
 
 @Controller()
 export default class StripeController {
@@ -18,6 +19,7 @@ export default class StripeController {
     private readonly orderService: OrderService,
     private readonly productService: ProductService,
     private readonly invoiceService: InvoiceService,
+    private readonly subscriptionService: SubscriptionService,
   ) {}
 
   @Post('/createPaymentLink')
@@ -62,21 +64,49 @@ export default class StripeController {
       });
     }
 
-    await this.orderService.updateOneOrder(
-      body.data.object.customer,
-      invoice,
-      body.data.object.status,
-      body.data.object.metadata.mode,
-    );
-
-    await Promise.all(
-      products.map(async (el) => {
-        await this.orderService.updateOneOrderProduct(
-          el,
-          body.data.object.customer,
+    if (
+      body.type != 'customer.subscription.created' ||
+      body.type != 'customer.subscription.updated' ||
+      body.type != 'customer.subscription.deleted' ||
+      body.type != 'customer.subscription.resumed'
+    ) {
+      const subscription =
+        await this.subscriptionService.findOneSubscriptionById(
+          body.data.object.id,
         );
-      }),
-    );
+      if (subscription) {
+        await this.subscriptionService.updateSubscryption(
+          subscription,
+          body.data.object.status,
+          invoice,
+        );
+      } else {
+        await this.subscriptionService.createSubscription({
+          subscriptionId: body.data.object.id,
+          collection_method: body.data.object.collection_method,
+          customerId: user._id,
+          currency: body.data.object.currency,
+          plan: body.data.object.plan,
+          dateOfCreating: Date.now(),
+          invoiceId: invoice._id,
+        });
+      }
+    } else {
+      await this.orderService.updateOneOrder(
+        body.data.object.customer,
+        invoice,
+        body.data.object.status,
+        body.data.object.metadata.mode,
+      );
+      await Promise.all(
+        products.map(async (el) => {
+          await this.orderService.updateOneOrderProduct(
+            el,
+            body.data.object.customer,
+          );
+        }),
+      );
+    }
 
     return body;
   }
@@ -99,6 +129,7 @@ export default class StripeController {
       customerId: objectId,
       customerStripeId: customerId.id,
     });
+
     user.save();
 
     return { customerStripeId: customerId.id };
@@ -128,15 +159,24 @@ export default class StripeController {
     return product;
   }
 
-  @Post('/updateSubscription')
+  @Post('/stopSubscription')
   async updateSubscription(
     @Body() updateSubscriptionDto: UpdateSubscriptionDto,
   ) {
-    this.stripeService.updateSubscription(updateSubscriptionDto);
+    return await this.stripeService.updateSubscription(updateSubscriptionDto);
   }
 
   @Post('/deleteSubscription')
-  async deleteSubscription(@Body() subscriptionId: string) {
-    this.stripeService.cancelSubscription(subscriptionId);
+  async deleteSubscription(@Body() subscriptionId: any) {
+    return await this.stripeService.cancelSubscription(
+      subscriptionId.subscriptionId,
+    );
+  }
+
+  @Post('/resumeSubscription')
+  async resumeSubscripttion(@Body() subscriptionId: any) {
+    return await this.stripeService.resumeSubscription(
+      subscriptionId.subscriptionId,
+    );
   }
 }

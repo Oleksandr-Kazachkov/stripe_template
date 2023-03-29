@@ -30,7 +30,11 @@ export class OrderService {
       order.invoce[order.invoce.length] = invoiceRes;
     }
 
-    if (order.status != 'succeeded' && status) {
+    if (
+      (order.status != 'succeeded' && status) ||
+      status === 'paused' ||
+      status === 'canceled'
+    ) {
       order.status = status;
     }
 

@@ -6,6 +6,7 @@ import { DatabaseModule } from './mongodb/mongoose.module';
 import { databaseProviders } from './mongodb/mongoose.provider';
 import { OrderModule } from './mongodb/order/order.module';
 import { ProductModule } from './mongodb/products/product.module';
+import { SubscriptionModule } from './mongodb/subscription/subscription.module';
 import { UsersModule } from './mongodb/user/user.module';
 import { StripeModule } from './stripe/stripe.module';
 
@@ -17,6 +18,7 @@ import { StripeModule } from './stripe/stripe.module';
     OrderModule,
     ProductModule,
     InvoiceModule,
+    SubscriptionModule,
   ],
   controllers: [AppController],
   providers: [AppService, ...databaseProviders],

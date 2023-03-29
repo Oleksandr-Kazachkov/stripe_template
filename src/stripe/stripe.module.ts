@@ -11,6 +11,8 @@ import { ProductService } from 'src/mongodb/products/product.service';
 import { productsProviders } from 'src/mongodb/products/providers/product.provider';
 import { InvoiceService } from 'src/mongodb/invoice/invoice.service';
 import { invoiceProviders } from 'src/mongodb/invoice/providers/invoice.provider';
+import { SubscriptionService } from 'src/mongodb/subscription/subscription.service';
+import { subscriptionProviders } from 'src/mongodb/subscription/providers/subscription.provider';
 
 @Module({
   imports: [MongooseModule],
@@ -21,11 +23,13 @@ import { invoiceProviders } from 'src/mongodb/invoice/providers/invoice.provider
     OrderService,
     ProductService,
     InvoiceService,
+    SubscriptionService,
     ...usersProviders,
     ...databaseProviders,
     ...ordersProviders,
     ...productsProviders,
     ...invoiceProviders,
+    ...subscriptionProviders,
   ],
 })
 export class StripeModule {}

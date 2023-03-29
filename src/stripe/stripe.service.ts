@@ -66,13 +66,14 @@ export default class StripeService {
   }
 
   async updateSubscription(updateSubscriptionDto: UpdateSubscriptionDto) {
-    await this.stripe.subscriptions.update(updateSubscriptionDto.subId, {
+    return await this.stripe.subscriptions.update(updateSubscriptionDto.subId, {
       metadata: { customerStripeId: updateSubscriptionDto.customerStripeId },
+      cancel_at_period_end: true,
     });
   }
 
   async cancelSubscription(subscriptionId: string) {
-    await this.stripe.subscriptions.del(subscriptionId);
+    return await this.stripe.subscriptions.del(subscriptionId);
   }
 
   async createProduct(name: string) {
@@ -87,5 +88,9 @@ export default class StripeService {
     };
 
     return await this.stripe.prices.create(resp);
+  }
+
+  async resumeSubscription(subscriptionId: string) {
+    return this.stripe.subscriptions.resume(subscriptionId);
   }
 }
