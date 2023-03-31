@@ -30,68 +30,57 @@ export default class StripeController {
 
     const objectId = new ObjectId(user._id);
 
-    await this.orderService.createOrder({
-      customerStripeId: paymentRequestBody.customerId,
-      customerId: objectId,
-      products: [],
-      invoce: [],
-      mode: null,
-    });
+    if (paymentRequestBody.mode === 'payment') {
+      await this.orderService.createOrder({
+        customerStripeId: paymentRequestBody.customerId,
+        userId: objectId,
+        products: [],
+        invoce: [],
+        mode: null,
+      });
+    }
+
+    if (paymentRequestBody.mode === 'subscription') {
+      await this.subscriptionService.createSubscription({
+        subscriptionId: '',
+        collection_method: '',
+        userId: objectId,
+        plan: {},
+        dateOfCreating: Date.now(),
+        invoiceId: [],
+        customerStripeId: paymentRequestBody.customerId,
+      });
+    }
 
     return await this.stripeService.createPaymentLink(paymentRequestBody);
   }
 
   @Post('/paymentStatus')
   async paymentStatus(@Body() body: any) {
-    let invoice;
-    let products = [];
-    if (body.data.object.metadata.products) {
-      products = JSON.parse(body.data.object.metadata.products);
-    }
+    if (!body.data.object.subscription) {
+      let invoice;
+      let products = [];
+      if (body.data.object.metadata.products) {
+        products = JSON.parse(body.data.object.metadata.products);
+      }
 
-    const orderId = await this.orderService.findOneOrder(
-      body.data.object.customer,
-    );
+      const orderId = await this.orderService.findOneOrder(
+        body.data.object.customer,
+      );
 
-    const user = await this.userService.findOneById(body.data.object.customer);
+      const user = await this.userService.findOneById(
+        body.data.object.customer,
+      );
 
-    if (body.type != 'checkout.session.completed') {
-      invoice = await this.invoiceService.createInvoice({
-        data: body.data.object,
-        customerId: user.customerId,
-        orderId: orderId._id,
-        status: body.type,
-      });
-    }
-
-    if (
-      body.type != 'customer.subscription.created' ||
-      body.type != 'customer.subscription.updated' ||
-      body.type != 'customer.subscription.deleted' ||
-      body.type != 'customer.subscription.resumed'
-    ) {
-      const subscription =
-        await this.subscriptionService.findOneSubscriptionById(
-          body.data.object.id,
-        );
-      if (subscription) {
-        await this.subscriptionService.updateSubscryption(
-          subscription,
-          body.data.object.status,
-          invoice,
-        );
-      } else {
-        await this.subscriptionService.createSubscription({
-          subscriptionId: body.data.object.id,
-          collection_method: body.data.object.collection_method,
-          customerId: user._id,
-          currency: body.data.object.currency,
-          plan: body.data.object.plan,
-          dateOfCreating: Date.now(),
-          invoiceId: invoice._id,
+      if (body.type != 'checkout.session.completed') {
+        invoice = await this.invoiceService.createInvoice({
+          data: body.data.object,
+          userId: user._id,
+          orderId: orderId._id,
+          status: body.type,
         });
       }
-    } else {
+
       await this.orderService.updateOneOrder(
         body.data.object.customer,
         invoice,
@@ -106,7 +95,38 @@ export default class StripeController {
           );
         }),
       );
+
+      return body;
     }
+  }
+
+  @Post('/subscriptionStatus')
+  async subsriptionStatus(@Body() body: any) {
+    let invoice;
+
+    const subscription = await this.subscriptionService.findOneByCustomerId(
+      body.data.object.customer,
+    );
+
+    const user = await this.userService.findOneById(body.data.object.customer);
+
+    if (body.type != 'checkout.session.completed') {
+      invoice = await this.invoiceService.createInvoice({
+        subscriptionId: subscription._id,
+        data: body.data.object,
+        userId: user._id,
+        status: body.type,
+      });
+    }
+
+    await this.subscriptionService.updateSubscription(
+      subscription,
+      body.data.object.status,
+      invoice._id,
+      body.data.object.id,
+      body.data.object.collection_method,
+      body.data.object.plan,
+    );
 
     return body;
   }

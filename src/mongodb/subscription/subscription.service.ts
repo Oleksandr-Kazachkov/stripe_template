@@ -21,12 +21,13 @@ export class SubscriptionService {
       const createdSubscription = new this.subscriptionModel({
         subscriptionId: createSubscriptionDto.subscriptionId,
         collection_method: createSubscriptionDto.collection_method,
-        customerId: createSubscriptionDto.customerId,
-        currency: createSubscriptionDto.currency,
+        customerId: createSubscriptionDto.userId,
         plan: createSubscriptionDto.plan,
         dateOfCreating: createSubscriptionDto.dateOfCreating,
         cancel_at_period_end: false,
+        customerStripeId: createSubscriptionDto.customerStripeId,
       });
+
       return createdSubscription.save();
     }
   }
@@ -37,18 +38,42 @@ export class SubscriptionService {
     });
   }
 
-  async updateSubscryption(
+  async findOneByCustomerId(customerId: string) {
+    return await this.subscriptionModel.findOne({
+      customerStripeId: customerId,
+    });
+  }
+
+  async updateSubscription(
     subscription: SubscriptionDocument,
     status?: string,
     invoce?: ObjectId,
+    subscriptionId?: string,
+    collection_method?: string,
+    plan?: object,
   ) {
-    if (status) {
-      subscription.cancel_at_period_end = true;
+    if (
+      status === 'succeeded' ||
+      status === 'paused' ||
+      status === 'canceled'
+    ) {
       subscription.status = status;
     }
 
     if (invoce) {
       subscription.invoiceId[subscription.invoiceId.length] = invoce;
+    }
+
+    if (subscriptionId) {
+      subscription.subscriptionId = subscriptionId;
+    }
+
+    if (collection_method) {
+      subscription.collection_method = collection_method;
+    }
+
+    if (plan) {
+      subscription.plan = plan;
     }
 
     return subscription.save();

@@ -9,11 +9,15 @@ export default class createInvoiceDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  customerId: ObjectId;
+  userId: ObjectId;
 
   @ApiProperty()
   @IsNotEmpty()
-  orderId: ObjectId;
+  orderId?: ObjectId;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  subscriptionId?: ObjectId;
 
   @ApiProperty()
   @IsNotEmpty()

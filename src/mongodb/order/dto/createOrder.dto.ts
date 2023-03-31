@@ -9,7 +9,7 @@ export default class createOrderDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  customerId: ObjectId;
+  userId: ObjectId;
 
   @ApiProperty()
   @IsString()

@@ -16,7 +16,7 @@ export class Order {
   invoce: Array<ObjectId>;
 
   @Prop({ required: true })
-  customerId: ObjectId;
+  userId: ObjectId;
 
   @Prop({ default: null })
   status: string;

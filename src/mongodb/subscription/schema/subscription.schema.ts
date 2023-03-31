@@ -6,17 +6,14 @@ export type SubscriptionDocument = HydratedDocument<Subscription>;
 
 @Schema({ versionKey: false })
 export class Subscription {
-  @Prop({ required: true })
+  @Prop({ default: '' })
   subscriptionId: string;
 
   @Prop({ default: null })
   collection_method: string;
 
   @Prop({ default: null })
-  customerId: ObjectId;
-
-  @Prop({ default: null })
-  currency: string;
+  userId: ObjectId;
 
   @Prop({ type: Object })
   plan: object;
@@ -32,6 +29,9 @@ export class Subscription {
 
   @Prop({ default: null })
   invoiceId: Array<ObjectId>;
+
+  @Prop({ default: null })
+  customerStripeId: string;
 }
 
 export const SubscriptionSchema = SchemaFactory.createForClass(Subscription);

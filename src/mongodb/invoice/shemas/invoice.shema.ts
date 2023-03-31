@@ -10,10 +10,13 @@ export class Invoice {
   data: object;
 
   @Prop({ required: true })
-  customerId: ObjectId;
+  userId: ObjectId;
 
-  @Prop({ required: true })
-  orderId: ObjectId;
+  @Prop()
+  orderId?: ObjectId;
+
+  @Prop()
+  subscriptionId?: ObjectId;
 
   @Prop({ required: true })
   status: string;

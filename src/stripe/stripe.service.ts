@@ -67,12 +67,16 @@ export default class StripeService {
 
   async updateSubscription(updateSubscriptionDto: UpdateSubscriptionDto) {
     return await this.stripe.subscriptions.update(updateSubscriptionDto.subId, {
-      metadata: { customerStripeId: updateSubscriptionDto.customerStripeId },
       cancel_at_period_end: true,
+      pause_collection: {
+        behavior: 'void',
+      },
     });
   }
 
-  async cancelSubscription(subscriptionId: string) {
+  async cancelSubscription(
+    subscriptionId: string,
+  ): Promise<Stripe.Response<Stripe.Subscription>> {
     return await this.stripe.subscriptions.del(subscriptionId);
   }
 

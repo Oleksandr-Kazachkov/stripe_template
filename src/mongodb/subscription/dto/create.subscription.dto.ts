@@ -13,11 +13,7 @@ export default class CreateSubcriptionDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  customerId: ObjectId;
-
-  @ApiProperty()
-  @IsString()
-  currency: string;
+  userId: ObjectId;
 
   @ApiProperty()
   plan: object;
@@ -26,5 +22,8 @@ export default class CreateSubcriptionDto {
   dateOfCreating: number;
 
   @ApiProperty()
-  invoiceId: ObjectId;
+  invoiceId: Array<ObjectId>;
+
+  @ApiProperty()
+  customerStripeId: string;
 }
